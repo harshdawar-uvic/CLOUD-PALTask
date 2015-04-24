@@ -1,0 +1,10 @@
+{
+	"dbURL":"mongodb://paltask:paltask@ds029837.mongolab.com:29837/paltask",
+	"sessionSecret":"SOETHINGTEANDIMF333",
+	"fb" : {
+		"appID": "1482334038655780",
+		"appSecret": "c1f56640c8144520d3db7dc76435ae27",
+		"callbackURL":"http://localhost:3002/auth/facebook/callback"
+	},
+	"host":"http://localhost:3002"
+}

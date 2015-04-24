@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>PALTask</title>
+	<link rel="stylesheet" href="../css/room.css">
+	<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+
+	<script>
+
+		$(function(){
+			var host = '{{config.host}}';
+			var messages = io.connect(host + '/messages');
+			var roomNum = {{room_number}};
+			var userName = '{{user.fullname}}';
+			var userPic = '{{user.profilePic}}';
+
+			messages.on('connect', function(){
+				console.log('connection established');
+				messages.emit('joinroom', {room:roomNum, user:userName, userPic:userPic});
+			});
+
+			$(document).on('keyup', '.newmessage', function(e){
+				if(e.which === 13 && $(this).val()!='') {
+					console.log('Comeshere');
+					messages.emit('newMessage',{
+						room_number:roomNum,
+						user:userName,
+						userPic:userPic,
+						message:$(this).val()
+						});
+					updateMessageFeed(userPic, $(this).val());
+					$(this).val('');
+					}	
+				});
+
+			messages.on('messagefeed', function(data){
+				console.log("Messagerecieved");
+				var msgs = JSON.parse(data);
+				updateMessageFeed(msgs.userPic, msgs.message);
+			});
+
+			messages.on('updateUsersList', function(data){
+				var users = JSON.parse(data);
+				$('.users').html('');
+
+				for(var i = 0; i < users.length; i++) {
+					var str = '<li>';
+						str += '<img src="' + users[i].userPic + '">';
+						str += '<h5>' + users[i].user + '</h5></li>';
+
+					$(str).prependTo($('.users'));
+				}
+			});
+
+			setInterval(function(){
+				messages.emit('updateUsers', {room:roomNum});
+			}, 5000);
+
+
+			function updateMessageFeed(userPic, message) {
+				var str = '<li>';
+					str += '<div class="msgbox">';
+					str += '<div class="pic"><img src="' + userPic + '"></div>';
+					str += '<div class="msg"><p>' + message + '</p></div>';
+					str += '</div>';
+					str += '</li>';	
+				$(str).appendTo($('.messages'));
+			}
+
+	});
+
+	</script>
+</head>
+<body>
+<div class="rm-container">
+		<h1 class="rm-title">PALTask</h1>
+		<div class="rm-userbox">
+			<img src="{{user.profilePic}}" class="userPic">
+			<h3 class="userName">{{user.fullname}} | <a href="/logout">Logout</a><a href="/chatrooms">More Chatrooms</a></h3>
+		</div>
+		<div class="rm-roomname">
+			<h5>{{room_name}}</h5>
+		</div>
+		<div class="rm-messages">
+			<ul class="messages">
+			</ul>
+		</div>
+		<div class="rm-users">
+			<ul class="users">
+				
+			</ul>
+		</div>
+		<div class="rm-newmessage">
+			<input type="text" class="newmessage" autocomplete="off" placeholder="Type in your message and press enter !">
+			
+		</div>
+	</div>
+</body>
+</html>
